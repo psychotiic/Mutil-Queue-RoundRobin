@@ -1,0 +1,8 @@
+build:
+	gcc -g -lpthread -o Schedule main.c processQueue.c -pthread
+
+memcheck:
+	valgrind --leak-check=full ./Schedule
+
+clean:
+	rm Schedule
