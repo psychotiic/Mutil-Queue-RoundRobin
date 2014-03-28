@@ -18,7 +18,7 @@ int main (void) {
     plist = init_process(1, 10, 3);
     plist->next = init_process(2, 1, 1); ptmp = plist->next; // pid, burst time, priotrity
     for(int i=3;i < 47; i++){
-	 ptmp->next = init_process(i, R(1,5),R(1,17)); 
+	 ptmp->next = init_process(i, R(1,5),R(0,16)); 
          ptmp = ptmp->next;
     }
     ptmp->next = init_process(48, 5, 2); // ends the data
