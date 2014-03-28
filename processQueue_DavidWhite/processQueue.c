@@ -1,6 +1,10 @@
 #include "processQueue.h"
 #include<stdlib.h> 
 #include <stdio.h>
+
+#include <time.h>  // needed to get the time
+#include <sys/time.h> // to get the time
+#include <string.h> // to get strings
      
 
     double R(double min, double max){
@@ -11,7 +15,7 @@
     struct process *proc;
     proc = malloc(sizeof(struct process));
     if (proc == NULL) {
-    printf("Fatal error: memory allocation failure.\nTerminating.\n");
+    printf(">>ERROR: Memory Allocation Failure.\nShutting Down.\n");
     exit(1);
     };
     proc->pid = pid;
@@ -22,39 +26,18 @@
     proc->next = NULL;
     return(proc);
     };
-     
-     
-    /* First-Come-First-Served scheduling simulation */
-    void firstComeFirstServe (struct process *proc) {
-    int time = 0, start, end;
-    struct process *tmp = proc;
-     
-    printf("BEGIN:\tFirst-Come-First-Served scheduling simulation\n");
-     
-    while (tmp != NULL) {
-    start = time;
-    time += tmp->burst;
-    end = time;
-    printf("Process: %d\tEnd Time: %d\tWaiting: %d\tTurnaround: %d\n", tmp->pid, time, start, end);
-    tmp = tmp->next;
-    };
-     
-    printf("END:\tFirst-Come-First-served scheduling simulation\n\n");
-    };
-     
-     
     /* Process listing */
     void listprocs (struct process *proc) {
     struct process *tmp = proc;
      
-    printf("BEGIN:\tProcess Listing\n");
+    printf("STARTING:\tList of Current Running Processes\n");
      
     while (tmp != NULL) {
-    printf("PID: %d\t\tPriority: %d\tBurst: %d\n", tmp->pid, tmp->priority, tmp->burst);
+    printf("PID: %d\t\tPriority: %d\tBurst Time: %d\n", tmp->pid, tmp->priority, tmp->burst);
     tmp = tmp->next;
     };
      
-    printf("END:\tProcess Listing\n\n");
+    printf("ENDING:\tList of Current Running Processes\n\n");
     };
      
      
@@ -64,9 +47,10 @@
     void priority (struct process *proc) {
     int time, start, end, highest;
     struct process *copy, *tmpsrc, *tmp, *beforehighest;
-     
-    printf("BEGIN:\tPriority scheduling simulation\n");
-     
+	
+	printf("STARTING:\tPriority Schedule Algorithm\n");
+	//("Total Sort Time: %lf sec.\n\n",outputTime);
+	//printf("Total Sort Time: %lf sec.\n\n", GetTime()); 
     /* Duplicate process list */
     tmpsrc = proc;
     copy = tmp = NULL;
@@ -104,7 +88,7 @@
     start = time;
     time += copy->burst;
     end = time;
-    printf("Process: %d\tEnd Time: %d\tWaiting: %d\tTurnaround: %d\n", copy->pid, time, start, end);
+    printf("PID: %d\tPriority: %d\tWait Time: %d\tTurnaround Time: %d\n", copy->pid, time, start, end);
     tmpsrc = copy->next;
     free(copy);
     copy = tmpsrc;
@@ -113,23 +97,32 @@
     tmp = beforehighest->next;
     start = time;
     time += tmp->burst;
-    end = time;
-    printf("Process: %d\tEnd Time: %d\tWaiting: %d\tTurnaround: %d\n", tmp->pid, time, start, end);
+    end = start - end;
+    printf("PID: %d\tPriority: %d\tWait Time: %d\tTurnaround Time: %d\n", tmp->pid, time, start, end);
     beforehighest->next = tmp->next;
     free(tmp);
     };
     };
-     
-    printf("END:\tPriority scheduling simulation\n\n");
+	GetTime(time);
+    printf("ENDING:\tPriority Schedule Algorithm\n\n");
     };
+
+	void GetTime(double totalTimes){	
+		struct timeval start1, end1;
+		totalTimes = totalTimes / 48;
+		double outputTime;
+		outputTime = (((end1.tv_sec * 1000000 + end1.tv_usec)
+			- (start1.tv_sec * 1000000 + start1.tv_usec))/totalTimes) /( 1000000.0);
+		printf("Average Algorithm Time:\b %lf Milla-seconds.\n", outputTime);
+	}
      
      
     /* Round-Robin scheduling simulation */
     void roundRobinSchedule (struct process *proc, int quantum) {
     int jobsremain, passes;
     struct process *copy, *tmpsrc, *tmp, *slot;
-     
-    printf("BEGIN:\tRound-Robin scheduling simulation (Quantum: %d)\n", quantum);
+	double division;
+    printf("STARTING:\tRound Robin Schedule Algorithm \t (Quantum Time Setting: %d)\n", quantum);
     /* Duplicate process list */
     tmpsrc = proc;
     copy = tmp = NULL;
@@ -186,75 +179,13 @@
     /* Display statistics and clean up copy */
     tmp = copy;
     while (tmp != NULL) {
-    printf("Process: %d\tWorking: %d\tWaiting: %d\tTurnaround: %d\n", tmp->pid, tmp->working, tmp->waiting, tmp->working + tmp->waiting);
+    printf("PID: %d\tQueue Timer: %d\t Wait Time: %d\tTurnaround Time: %d\n", tmp->pid, tmp->working, tmp->waiting, tmp->working + tmp->waiting);
+	division += tmp->working + tmp->waiting;
     tmpsrc = tmp;
     tmp = tmp->next;
     free(tmpsrc);
     };
-     
-    printf("END:\troundRobinSchedule scheduling simulation\n\n");
+	GetTime(division);
+    printf("ENDING:\tRound Robin Schedule Algorithm\n\n");
     };
-     
-     
-    /* Shortest Job First scheduling simulation */
-    void shortestJobFirst (struct process *proc) {
-    int time, start, end, shortest;
-    struct process *copy, *tmpsrc, *tmp, *beforeshortest;
-     
-    printf("BEGIN:\tShortest Job First scheduling simulation\n");
-     
-    /* Duplicate process list */
-    tmpsrc = proc;
-    copy = tmp = NULL;
-    while (tmpsrc != NULL) {
-    if (copy == NULL) {
-    copy = init_process(tmpsrc->pid, tmpsrc->burst, tmpsrc->priority);
-    tmp = copy;
-    } else {
-    tmp->next = init_process(tmpsrc->pid, tmpsrc->burst, tmpsrc->priority);
-    tmp = tmp->next;
-    };
-    tmpsrc = tmpsrc->next;
-    };
-     
-    /* Main routine */
-    time = 0;
-    while (copy != NULL) {
-    /* Find the next job */
-    beforeshortest = NULL;
-    shortest = copy->burst;
-    tmp = copy->next;
-    tmpsrc = copy;
-    while (tmp != NULL) {
-    if (tmp->burst < shortest) {
-    shortest = tmp->burst;
-    beforeshortest = tmpsrc;
-    };
-    tmpsrc = tmp;
-    tmp = tmp->next;
-    };
-     
-    /* Process job and remove from copy of process list */
-    if (beforeshortest == NULL) {
-    /* Handle first job is shortest case */
-    start = time;
-    time += copy->burst;
-    end = time;
-    printf("Process: %d\tEnd Time: %d\tWaiting: %d\tTurnaround: %d\n", copy->pid, time, start, end);
-    tmpsrc = copy;
-    copy = copy->next;
-    free(tmpsrc);
-    } else {
-    /* Handle first job is not shortest case */
-    tmp = beforeshortest->next;
-    start = time;
-    time += tmp->burst;
-    end = time;
-    printf("Process: %d\tEnd Time: %d\tWaiting: %d\tTurnaround: %d\n", tmp->pid, time, start, end);
-    beforeshortest->next = tmp->next;
-    free(tmp);
-    };
-    };
-     
-    printf("END:\tShortest Job First scheduling simulation\n\n");
-    };
+   

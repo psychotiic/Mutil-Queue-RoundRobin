@@ -1,5 +1,5 @@
 build:
-	gcc -g -lpthread -o Schedule main.c processQueue.c -pthread -std=c99
+	gcc -o Schedule main.c processQueue.c -std=c99
 
 memcheck:
 	valgrind --leak-check=full ./Schedule

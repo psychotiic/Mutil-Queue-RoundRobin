@@ -25,4 +25,5 @@
     void roundRobinSchedule (struct process *proc, int quantum);
     void shortestJobFirst (struct process *proc);
     double R(double min, double max);
+    void GetTime(double passedTotals);
 #endif // MESSAGEQUEUE_H
